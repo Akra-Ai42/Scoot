@@ -1,0 +1,60 @@
+name: 🦖 Agent Scout — Shift de Nuit
+
+on:
+  schedule:
+    - cron: "0 2 * * *"   # Tous les jours à 02h00 UTC
+  workflow_dispatch:        # Déclenchement manuel possible
+
+jobs:
+  run-scout:
+    name: Exécution de l'Agent Scout
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Installation des dépendances
+        run: pip install -r requirements.txt
+
+      - name: Exécution de l'Agent Scout
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          TOGETHER_API_KEY: ${{ secrets.TOGETHER_API_KEY }}
+          LOOPS_API_KEY: ${{ secrets.LOOPS_API_KEY }}
+        run: python -m src.agent.scout
+
+  generate-newsletter:
+    name: Newsletter hebdomadaire (dimanche)
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 2 * * 0'  # Dimanche uniquement
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Installation des dépendances
+        run: pip install -r requirements.txt
+
+      - name: Génération de la newsletter
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          TOGETHER_API_KEY: ${{ secrets.TOGETHER_API_KEY }}
+          LOOPS_API_KEY: ${{ secrets.LOOPS_API_KEY }}
+        run: python -m src.newsletter.generator
